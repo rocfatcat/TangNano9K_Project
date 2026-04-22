@@ -1,0 +1,6 @@
+# Yosys / NextPNR output
+*.json
+*.fs
+
+# Logs and temporary files
+*.log
