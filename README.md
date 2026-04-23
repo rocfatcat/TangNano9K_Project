@@ -1,75 +1,49 @@
-# Tang Nano 9K Apicula Template with 3MHz UART
+# Tang Nano 9K Apicula Template with 3MHz UART & eSPI Sniffer
 
-This is a high-performance project template for the Sipeed Tang Nano 9K FPGA board using the open-source [Apicula](https://github.com/YosysHQ/apicula) toolchain. It features a 3MHz UART with 1KB TX/RX FIFOs and an echo loopback test.
+This is a high-performance project template for the Sipeed Tang Nano 9K FPGA board using the open-source [Apicula](https://github.com/YosysHQ/apicula) toolchain. It features a high-speed eSPI Sniffer with 3MHz UART output.
 
 ## Features
 
+- **eSPI Sniffer (Phase 1)**: Captures 16-bit raw data with frequency-adaptive edge detection (supports 20MHz ~ 66MHz).
+- **Dual Voltage Support**: Supports both **1.8V** and **3.3V** eSPI buses via compile-time parameters.
 - **3MHz UART**: Custom hand-crafted UART engine running at 3Mbps (9 cycles per bit @ 27MHz).
 - **1KB FIFOs**: Independent 1024-byte TX and RX buffers using inferred BSRAM.
-- **Echo Loopback**: The default `top.v` echoes all received UART data back to the transmitter.
-- **LED Blinky**: Visual heart-beat on the 6 onboard LEDs.
-
-## Prerequisites
-
-You need the following tools installed and in your PATH:
-
-1.  **Yosys**: For Verilog synthesis.
-2.  **nextpnr-gowin**: For place and route.
-3.  **Apicula**: Provides `gowin_pack` (install via `pip install apicula`).
-4.  **openFPGALoader**: For programming the FPGA.
-
-## Project Structure
-
-- `src/top.v`: Top-level module with echo loopback and blinky.
-- `src/uart.v`: High-level UART wrapper with FIFOs.
-- `src/uart_tx.v` & `src/uart_rx.v`: Core 3MHz UART engines.
-- `src/fifo.v`: Synchronous 1KB FIFO using block RAM.
-- `src/tangnano9k.cst`: Physical constraints file.
-- `Makefile`: Automates the entire build and upload process.
 
 ## Usage
 
-### Build the bitstream
-To synthesize, place, route, and pack the design:
-```bash
-make
-```
-This will produce `top.fs`.
+### Build the bitstream (Select Voltage)
+The Tang Nano 9K has fixed voltage banks. You must select the correct voltage for your target eSPI bus during compilation.
 
-### Upload to SRAM (Volatile)
-To test the design immediately:
+#### For 1.8V eSPI (Bank 3)
+Connect signals to Pin 19 (CLK), 20 (CS#), 5 (IO0), 6 (IO1).
+```bash
+make clean
+make VOLTAGE=1.8
+```
+
+#### For 3.3V eSPI (Bank 2)
+Connect signals to Pin 25 (CLK), 26 (CS#), 27 (IO0), 28 (IO1).
+```bash
+make clean
+make VOLTAGE=3.3
+```
+
+### Upload to Board
 ```bash
 make load
 ```
 
-### Flash to internal memory (Persistent)
-To save the design permanently:
-```bash
-make flash
-```
-
-### Testing the UART
-Open your favorite serial terminal (e.g., PuTTY, VS Code Serial Monitor) with the following settings:
-- **Baudrate**: 3,000,000 (3 Mbps)
-- **Data bits**: 8
-- **Stop bits**: 1
-- **Parity**: None
-- **Flow Control**: None
-
-Typing characters should result in an instant echo from the FPGA.
-
 ## Hardware Pinout Reference (Tang Nano 9K)
 
-| Component | Pin | Note |
-| :--- | :--- | :--- |
-| Clock | 52 | 27 MHz |
-| UART TX | 17 | Connected to BL702 bridge |
-| UART RX | 18 | Connected to BL702 bridge |
-| LED 0 | 10 | Active Low |
-| LED 1 | 11 | Active Low |
-| LED 2 | 13 | Active Low |
-| LED 3 | 14 | Active Low |
-| LED 4 | 15 | Active Low |
-| LED 5 | 16 | Active Low |
-| Button S1 | 3 | Active Low |
-| Button S2 | 4 | Active Low |
+| Component | Pin (1.8V Mode) | Pin (3.3V Mode) | Note |
+| :--- | :--- | :--- | :--- |
+| **eSPI CLK** | **19** | **25** | |
+| **eSPI CS#** | **20** | **26** | |
+| **eSPI IO0** | **5** | **27** | |
+| **eSPI IO1** | **6** | **28** | |
+| UART TX | 17 | 17 | 3Mbps Output |
+| Clock | 52 | 52 | 27 MHz Crystal |
+| LED 0 | 10 | 10 | Status LED (Active Low) |
+
+---
+*For full technical specifications, see the `doc/` directory.*

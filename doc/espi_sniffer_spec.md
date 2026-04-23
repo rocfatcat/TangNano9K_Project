@@ -1,7 +1,7 @@
 # Module Specification: eSPI Sniffer (Phase 1)
 
 ## Overview
-The `espi_sniffer` module is a high-speed bus monitor designed to capture eSPI (Enhanced Serial Peripheral Interface) transactions. It utilizes an **oversampling** architecture to achieve frequency auto-adaptation, enabling it to monitor eSPI buses regardless of whether they operate at 20MHz, 33MHz, 50MHz, or 66MHz.
+The `espi_sniffer` module is a high-speed bus monitor designed to capture eSPI (Enhanced Serial Peripheral Interface) transactions. It utilizes an **oversampling** architecture to achieve frequency auto-adaptation and supports both **1.8V** and **3.3V** physical logic levels via build-time configuration.
 
 ## Internal Architecture
 The module consists of four primary functional blocks:
@@ -19,6 +19,31 @@ Because the eSPI signals (`clk`, `cs#`, `io`) are asynchronous to the internal `
 The module does **not** use `espi_clk` as a clock source for logic. Instead, it generates a single-cycle pulse `clk_edge` in the `clk_sample` domain.
 - **Sampling Window**: Data is sampled precisely 1 internal clock cycle after the `espi_clk` rising edge is registered.
 - **Clock Ratio**: For a 66MHz eSPI bus and 216MHz sample clock, we have ~3.2 samples per bit, which is the minimum recommended for reliable detection.
+
+---
+
+## ⚡ Physical Constraints & Bank Mapping
+The Tang Nano 9K has fixed voltage banks. To support different eSPI voltages, the sniffer must be mapped to specific pins that match the target voltage.
+
+### 1. 1.8V Mode (Bank 3)
+- **Target**: Modern Laptops / Mobile platforms.
+- **Hardware Logic**: Uses pins in **Bank 3**, which is powered by the 1.8V PSRAM rail.
+- **Build**: `make VOLTAGE=1.8`
+- **Pin Mapping**:
+  - `espi_clk`: Pin 19
+  - `espi_cs_n`: Pin 20
+  - `espi_io[0]`: Pin 5
+  - `espi_io[1]`: Pin 6
+
+### 2. 3.3V Mode (Bank 2)
+- **Target**: Servers / Older Desktop platforms.
+- **Hardware Logic**: Uses pins in **Bank 2**, which is powered at 3.3V (HDMI/LCD area).
+- **Build**: `make VOLTAGE=3.3`
+- **Pin Mapping**:
+  - `espi_clk`: Pin 25
+  - `espi_cs_n`: Pin 26
+  - `espi_io[0]`: Pin 27
+  - `espi_io[1]`: Pin 28
 
 ---
 
